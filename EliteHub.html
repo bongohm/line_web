@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- CSP removed: Monaco Editor requires dynamic script loading via AMD require() which is incompatible with strict script-src CSP meta tags -->
+    
     <title>Elite Hub v11.0 Ultimate</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Prompt:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1013,7 +1013,7 @@
 </head>
 <body>
 
-<!-- ===== SIDEBAR ===== -->
+
 <aside class="sidebar" id="sidebar">
     <div class="logo-area" onclick="toggleSidebar()" title="Toggle Sidebar">
         <div class="logo-icon">☄️</div>
@@ -1059,7 +1059,7 @@
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
 </aside>
 
-<!-- ===== MAIN CONTENT ===== -->
+
 <main class="main-content">
     <header class="header">
         <div class="header-left">
@@ -1077,11 +1077,11 @@
     </header>
 
     <section class="view-container" id="viewContainer">
-        <!-- Dashboard or Preview rendered here -->
+        
     </section>
 </main>
 
-<!-- ===== MODAL: ADD / EDIT PROJECT ===== -->
+
 <div class="modal" id="codeModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1119,7 +1119,7 @@
     </div>
 </div>
 
-<!-- ===== ASSET MANAGER MODAL ===== -->
+
 <div class="modal" id="assetModal">
     <div class="modal-content" style="max-width: 500px; min-height: auto; height: auto;">
         <div class="modal-header">
@@ -1144,11 +1144,11 @@
     </div>
 </div>
 
-<!-- ===== GAS EDITOR MODAL ===== -->
+
 <div class="modal" id="gasModal">
     <div class="modal-content">
 
-        <!-- Header -->
+        
         <div class="modal-header">
             <div style="display:flex; align-items:center; gap:14px;">
                 <div style="width:42px;height:42px;background:linear-gradient(135deg,#10b981,#06b6d4);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">📜</div>
@@ -1167,7 +1167,7 @@
             </div>
         </div>
 
-        <!-- Auth Section (shown when not authenticated) -->
+        
         <div id="gasAuthSection">
             <div class="gas-auth-section">
                 <span class="gas-auth-icon">🔐</span>
@@ -1201,10 +1201,10 @@
             </div>
         </div>
 
-        <!-- Main Editor (shown when authenticated) -->
+        
         <div id="gasEditorSection" style="display:none;flex-direction:column;flex:1;min-height:0;gap:16px;">
 
-            <!-- Project Selector -->
+            
             <div id="gasProjectSelector" style="display:none;">
                 <div class="gas-panel">
                     <h4>📂 Select GAS Project</h4>
@@ -1222,10 +1222,10 @@
                 </div>
             </div>
 
-            <!-- Editor Layout -->
+            
             <div id="gasEditorLayout" class="gas-layout" style="display:none;">
 
-                <!-- Left: File List -->
+                
                 <div class="gas-sidebar">
                     <div class="gas-panel" style="flex-shrink:0;">
                         <h4>📁 Project Files</h4>
@@ -1252,7 +1252,7 @@
                     </div>
                 </div>
 
-                <!-- Right: Monaco Editor -->
+                
                 <div class="gas-editor-area">
                     <div class="gas-editor-toolbar">
                         <button class="btn btn-outline" style="padding:6px 12px;font-size:0.8rem;" onclick="gasBackToSelector()">← Projects</button>
@@ -1278,16 +1278,16 @@
     </div>
 </div>
 
-<!-- ===== RENDERING ENGINE STATUS ===== -->
+
 <div class="rendering-status" id="renderingStatus">✓ Ultimate Rendering Engine</div>
 
-<!-- ===== TOAST ===== -->
+
 <div id="toast"></div>
 
-<!-- ===== SCRIPTS ===== -->
+
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.7/dist/dexie.min.js"></script>
-<!-- Monaco Editor Loader: โหลด loader.js แล้ว config require ทันที -->
+
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
 <script>
     // Config require paths ทันทีหลัง loader.js โหลด
@@ -2794,11 +2794,11 @@
         // สร้าง HTML wrapper สำหรับไฟล์ GAS
         const filesSummary = GAS.projectFiles.map(f => {
             const ext = f.type === 'SERVER_JS' ? '.gs' : f.type === 'HTML' ? '.html' : '.json';
-            return `<!-- ===== FILE: ${f.name}${ext} (${f.type}) ===== -->\n${f.source}`;
+            return `\n${f.source}`;
         }).join('\n\n');
 
         const projectTitle = document.getElementById('gasModalTitle').textContent || 'GAS Project';
-        const wrappedContent = `<!-- GAS Project: ${projectTitle} -->\n<!-- Imported from Google Apps Script via Elite Hub -->\n<!-- Script ID: ${GAS.scriptId} -->\n<!-- Files: ${GAS.projectFiles.length} -->\n\n${filesSummary}`;
+        const wrappedContent = `\n\n\n\n\n${filesSummary}`;
 
         // เพิ่มเป็น project ใหม่ใน Elite Hub
         const newProject = {
@@ -2856,7 +2856,7 @@
     });
 </script>
 
-<!-- example code demonstrating backend API call -->
+
 <script>
     // when the page loads log the contents of our dashboard API
     fetch('/api/dashboard')

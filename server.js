@@ -5,7 +5,7 @@ const fs = require('fs').promises;
 const app = express();
 app.use(express.json());
 
-// path to the JSON data store (application-specific rather than the original codes file)
+
 const APP_DATA_FILE = path.join(__dirname, 'app_data.json');
 
 async function readAppData() {
@@ -25,10 +25,10 @@ async function writeAppData(obj) {
   await fs.writeFile(APP_DATA_FILE, JSON.stringify(obj, null, 2), 'utf8');
 }
 
-// serve static files from root (including EliteHub.html)
+
 app.use(express.static(path.join(__dirname)));
 
-// simple REST API
+
 app.get('/api/dashboard', async (req, res) => {
   try {
     const data = await readAppData();
@@ -56,7 +56,7 @@ app.post('/api/dashboard', async (req, res) => {
   }
 });
 
-// fallback to serve EliteHub.html for all other routes (SPA style)
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'EliteHub.html'));
 });
