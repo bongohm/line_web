@@ -8,7 +8,21 @@ app.use(express.json());
 // -----------------------------------------------------------------------------
 // MongoDB setup
 // -----------------------------------------------------------------------------
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/lineweb';
+// build connection string from available environment variables (Railway provides several)
+let MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  // try common variable names
+  const user = process.env.MONGOUSER || process.env.MONGO_INITDB_ROOT_USERNAME || '';
+  const pass = process.env.MONGOPASSWORD || process.env.MONGO_INITDB_ROOT_PASSWORD || '';
+  const host = process.env.MONGOHOST || 'localhost';
+  const port = process.env.MONGOPORT || '27017';
+  const db   = process.env.MONGO_DB || 'lineweb';
+
+  const auth = user && pass ? `${encodeURIComponent(user)}:${encodeURIComponent(pass)}@` : '';
+  MONGO_URI = `mongodb://${auth}${host}:${port}/${db}`;
+}
+console.log('using mongo uri:', MONGO_URI.replace(/:[^:@]+@/, ':*****@'));
+
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => {
