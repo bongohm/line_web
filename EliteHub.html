@@ -1,0 +1,2870 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSP removed: Monaco Editor requires dynamic script loading via AMD require() which is incompatible with strict script-src CSP meta tags -->
+    <title>Elite Hub v11.0 Ultimate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Prompt:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* =====================================================
+           ELITE HUB v10.0 ULTIMATE — MERGED & FIXED
+           รวมจาก v9.0 Equilibrium + v6.9 Ultimate (x2)
+           แก้ไข: ลบ CSS ซ้ำ, รวม JS functions, อัปเกรด DB schema
+           ===================================================== */
+
+        /* ===== CSS VARIABLES ===== */
+        :root {
+            --bg-dark: #0a0e27;
+            --bg-darker: #050810;
+            --sidebar-bg: rgba(20, 28, 48, 0.8);
+            --accent-primary: #8b5cf6;
+            --accent-secondary: #06b6d4;
+            --accent-tertiary: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-border-hover: rgba(255, 255, 255, 0.15);
+            --text-main: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --sidebar-width: 300px;
+            --sidebar-collapsed: 90px;
+            --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ===== RESET & BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; height: 100%; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Prompt', sans-serif;
+            background-attachment: fixed;
+            background-image:
+                radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            padding: 28px 18px;
+            transition: var(--transition-smooth);
+            z-index: 1000;
+            position: relative;
+            overflow: hidden;
+            order: -1;
+            flex-shrink: 0;
+            height: 100vh;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        body.sidebar-right .sidebar {
+            border-right: none;
+            border-left: 1px solid var(--glass-border);
+            order: 1;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+            padding: 28px 12px;
+        }
+
+        .sidebar.collapsed .logo-area {
+            justify-content: center;
+            padding: 0 0 28px;
+        }
+
+        .sidebar.collapsed .logo-text,
+        .sidebar.collapsed .search-container,
+        .sidebar.collapsed .sidebar-btn-text,
+        .sidebar.collapsed .sidebar-footer,
+        .sidebar.collapsed .project-name {
+            opacity: 0;
+            visibility: hidden;
+            width: 0;
+            height: 0;
+            margin: 0;
+            padding: 0;
+            pointer-events: none;
+        }
+
+        /* ===== LOGO AREA ===== */
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 0 12px 28px;
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            flex-shrink: 0;
+            user-select: none;
+            position: relative;
+        }
+
+        .logo-area:hover { border-bottom-color: var(--glass-border-hover); }
+
+        .logo-icon {
+            min-width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.5), inset 0 0 20px rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+
+        .logo-text h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            background: linear-gradient(135deg, var(--text-main), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 0.65rem;
+            opacity: 0.5;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        /* ===== SEARCH BOX ===== */
+        .search-container {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .search-box {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--glass-border);
+            padding: 12px 16px 12px 40px;
+            border-radius: 14px;
+            color: white;
+            outline: none;
+            transition: var(--transition-fast);
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        .search-box::placeholder { color: var(--text-tertiary); }
+
+        .search-box:focus {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .search-container::before {
+            content: '🔍';
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* ===== CODE LIST ===== */
+        .code-list {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 6px;
+            margin-bottom: 16px;
+        }
+
+        .code-list::-webkit-scrollbar { width: 5px; }
+        .code-list::-webkit-scrollbar-track { background: transparent; }
+        .code-list::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        .code-list::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        .code-item {
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: var(--transition-fast);
+            background: rgba(255,255,255,0.02);
+            border: 1px solid transparent;
+            position: relative;
+            user-select: none;
+        }
+
+        .code-item:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: var(--glass-border-hover);
+            transform: translateX(4px);
+        }
+
+        .code-item.active {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid var(--item-color, var(--accent-primary));
+            box-shadow: inset 0 0 20px rgba(139, 92, 246, 0.1), 0 0 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .sortable-ghost {
+            opacity: 0.4;
+            background: rgba(139, 92, 246, 0.2) !important;
+        }
+
+        .color-dot {
+            min-width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--item-color, var(--accent-primary));
+            box-shadow: 0 0 12px var(--item-color, var(--accent-primary));
+            flex-shrink: 0;
+        }
+
+        .pin-icon {
+            font-size: 0.85rem;
+            opacity: 0.3;
+            transition: var(--transition-fast);
+            cursor: pointer;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .pin-icon:hover { opacity: 0.8; transform: scale(1.2); }
+        .pin-icon.pinned { color: #fbbf24; opacity: 1; }
+
+        /* Tooltip for collapsed sidebar */
+        .sidebar.collapsed .code-item::after {
+            content: attr(data-name);
+            position: absolute;
+            left: 100px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(30, 41, 59, 0.95);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition-fast);
+            z-index: 9999;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+        }
+
+        .sidebar.collapsed .code-item:hover::after { opacity: 1; left: 110px; }
+
+        body.sidebar-right .sidebar.collapsed .code-item::after {
+            left: auto;
+            right: calc(var(--sidebar-collapsed) + 10px);
+        }
+
+        body.sidebar-right .sidebar.collapsed .code-item:hover::after {
+            right: calc(var(--sidebar-collapsed) + 20px);
+            left: auto;
+        }
+
+        /* ===== SIDEBAR FOOTER ===== */
+        .sidebar-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: auto;
+            flex-shrink: 0;
+        }
+
+        .storage-info {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            padding: 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 12px 20px;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: transparent;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: var(--glass-border-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(10, 14, 39, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            gap: 20px;
+            min-height: 90px;
+            flex-wrap: wrap;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        #statusDot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            box-shadow: 0 0 12px currentColor;
+            flex-shrink: 0;
+        }
+
+        #contentTitle {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-main), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #actionGroup {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        /* ===== VIEW CONTAINER ===== */
+        /* FIX #13: display:flex เพื่อให้ .preview-window height:100% ทำงานถูกต้อง */
+        .view-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== PREVIEW WINDOW ===== */
+        .preview-window {
+            width: 100%;
+            height: 100%;
+            min-height: calc(100vh - 90px - 64px);
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.1);
+            flex: 1;
+        }
+
+        .preview-window iframe {
+            width: 100%;
+            height: 100%;
+            min-height: inherit;
+            border: none;
+            display: block;
+        }
+
+        /* ===== DASHBOARD STATS ===== */
+        .stats-container {
+            width: 100%;
+            flex: 1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 28px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: var(--transition-fast);
+        }
+
+        .stat-card:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: var(--glass-border-hover);
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.6;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-main), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .color-stats-area {
+            background: rgba(255,255,255,0.02);
+            border-radius: 18px;
+            padding: 28px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .color-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .color-bar-label {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .color-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .color-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .color-bar-count {
+            width: 45px;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* ===== MODAL ===== */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 1600px;
+            height: 93vh;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 28px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px;
+            gap: 24px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 24px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        #modalTitle {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-main), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ===== COLOR PICKER ===== */
+        .color-selector {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .color-opt {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: var(--transition-fast);
+            box-shadow: 0 0 16px rgba(0,0,0,0.3);
+        }
+
+        .color-opt:hover { transform: scale(1.15); }
+
+        .color-opt.selected {
+            border-color: white;
+            transform: scale(1.25);
+            box-shadow: 0 0 20px currentColor;
+        }
+
+        #codeName {
+            flex: 1;
+            height: 50px;
+            font-size: 1rem;
+            min-width: 200px;
+        }
+
+        /* ===== CODE EDITOR ===== */
+        .editor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .code-editor-wrapper {
+            display: flex;
+            border: 1px solid #334155;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #0b1221;
+            position: relative;
+            height: 100%;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        /* Monaco Editor container */
+        #monacoContainer {
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+        }
+
+        /* Override Monaco scrollbar to match theme */
+        .monaco-editor .scrollbar .slider {
+            background: rgba(255,255,255,0.1) !important;
+            border-radius: 10px !important;
+        }
+        .monaco-editor .scrollbar .slider:hover {
+            background: rgba(255,255,255,0.2) !important;
+        }
+
+        .live-preview {
+            background: #fff;
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+            height: 100%;
+        }
+
+        .live-label {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #10b981;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            z-index: 10;
+            font-weight: 600;
+        }
+
+        /* ===== TOAST NOTIFICATION ===== */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 14px 28px;
+            background: rgba(30, 41, 59, 0.95);
+            color: white;
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-primary);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(120px);
+            opacity: 0;
+            transition: var(--transition-smooth);
+            z-index: 3000;
+            backdrop-filter: blur(20px);
+            max-width: 400px;
+            word-wrap: break-word;
+            font-size: 0.95rem;
+        }
+
+        #toast.show { transform: translateY(0); opacity: 1; }
+
+        /* ===== RENDERING ENGINE STATUS ===== */
+        .rendering-status {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            padding: 8px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            z-index: 2999;
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+        }
+
+        /* ===== TEMPLATE MENU ===== */
+        #templateMenu {
+            display: none;
+            background: rgba(15,23,42,0.95);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-top: 8px;
+            padding: 8px;
+            backdrop-filter: blur(20px);
+        }
+
+        .template-item {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .template-item:hover { background: rgba(255,255,255,0.05); }
+
+        /* ===== GAS EDITOR MODAL ===== */
+        #gasModal .modal-content {
+            max-width: 1400px;
+            background: rgba(10, 20, 40, 0.95);
+        }
+
+        .gas-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .gas-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .gas-sidebar::-webkit-scrollbar { width: 5px; }
+        .gas-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .gas-panel {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .gas-panel h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.5;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .gas-input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: white;
+            outline: none;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: var(--transition-fast);
+            margin-bottom: 8px;
+        }
+
+        .gas-input:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 16px rgba(16,185,129,0.2);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .gas-input::placeholder { color: var(--text-tertiary); }
+
+        .gas-file-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            border: 1px solid transparent;
+            font-size: 0.9rem;
+        }
+
+        .gas-file-item:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: var(--glass-border);
+        }
+
+        .gas-file-item.active {
+            background: rgba(16,185,129,0.15);
+            border-color: rgba(16,185,129,0.5);
+            color: #10b981;
+        }
+
+        .gas-file-type {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .gas-type-server { background: rgba(139,92,246,0.3); color: #a78bfa; }
+        .gas-type-html { background: rgba(6,182,212,0.3); color: #67e8f9; }
+        .gas-type-json { background: rgba(245,158,11,0.3); color: #fcd34d; }
+
+        .gas-editor-area {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .gas-editor-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px 12px 0 0;
+            border-bottom: none;
+            flex-wrap: wrap;
+        }
+
+        .gas-filename-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #10b981;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        #gasMonacoContainer {
+            flex: 1;
+            min-height: 0;
+            border: 1px solid var(--glass-border);
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
+        }
+
+        .gas-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 0 0 12px 12px;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: -1px;
+        }
+
+        .gas-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+            flex-shrink: 0;
+        }
+
+        .gas-status-dot.loading { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; animation: pulse 1s infinite; }
+        .gas-status-dot.error { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+        .gas-auth-section {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .gas-auth-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .gas-project-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .gas-project-card {
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .gas-project-card:hover {
+            background: rgba(16,185,129,0.1);
+            border-color: rgba(16,185,129,0.4);
+        }
+
+        .gas-project-card .proj-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .gas-project-card .proj-id {
+            font-size: 0.7rem;
+            opacity: 0.4;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        @media (max-width: 900px) {
+            .gas-layout { grid-template-columns: 1fr; }
+            .gas-sidebar { max-height: 200px; }
+        }
+
+        /* ===== GLOBAL SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        ::-webkit-scrollbar-track { background: transparent; }
+
+        /* ===== RESPONSIVE: 1200px ===== */
+        @media (max-width: 1200px) {
+            .editor-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===== RESPONSIVE: 768px ===== */
+        @media (max-width: 768px) {
+            .sidebar { width: var(--sidebar-collapsed); }
+            .header { padding: 16px 20px; min-height: 80px; }
+            .header-left { gap: 12px; }
+            #contentTitle { font-size: 1.3rem; }
+            #actionGroup { gap: 6px; width: 100%; }
+            .btn { padding: 10px 16px; font-size: 0.85rem; }
+            .view-container { padding: 16px; }
+            .modal-content { padding: 20px; border-radius: 20px; height: 95vh; }
+            .modal-header { flex-direction: column; align-items: flex-start; }
+            #modalTitle { font-size: 1.3rem; }
+            #codeName { width: 100%; }
+            .color-selector { width: 100%; }
+            .editor-grid { gap: 16px; }
+            .code-editor-wrapper { border-radius: 14px; }
+            /* Monaco Editor handles its own responsive sizing */
+            .stats-grid { grid-template-columns: 1fr; }
+            .color-stats-area { padding: 20px; }
+            #toast { bottom: 20px; right: 20px; left: 20px; max-width: none; }
+            .rendering-status { left: 20px; bottom: 20px; }
+        }
+
+        /* ===== RESPONSIVE: 480px ===== */
+        @media (max-width: 480px) {
+            body { font-size: 14px; }
+            .sidebar { width: 70px; padding: 16px 8px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; padding: 12px 16px; min-height: 70px; }
+            .header-left { width: 100%; }
+            #contentTitle { font-size: 1.1rem; }
+            #actionGroup { width: 100%; gap: 4px; }
+            .btn { padding: 8px 12px; font-size: 0.75rem; flex: 1; }
+            .modal-content { padding: 16px; height: 96vh; }
+            /* Monaco Editor handles its own responsive sizing */
+            .modal-header { gap: 12px; }
+            .color-selector { gap: 8px; }
+            .color-opt { width: 28px; height: 28px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+    <div class="logo-area" onclick="toggleSidebar()" title="Toggle Sidebar">
+        <div class="logo-icon">☄️</div>
+        <div class="logo-text">
+            <h2>ARM CA77</h2>
+            <p>v11.0 ULTIMATE</p>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" class="search-box" id="searchInput" placeholder="Search projects..." oninput="filterCodes()">
+    </div>
+
+    <div class="code-list" id="codeList"></div>
+
+    <div class="sidebar-footer">
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="openAddCodeModal()">
+                <span>➕</span> <span class="sidebar-btn-text">New Project</span>
+            </button>
+            <button class="btn btn-outline" style="width: 50px; justify-content: center;" onclick="toggleTemplateMenu()" title="Use Template">📝</button>
+        </div>
+        <div id="templateMenu">
+            <div style="padding:8px; font-size:0.75rem; opacity:0.5; text-transform:uppercase; letter-spacing:1px;">Templates</div>
+            <div class="template-item" onclick="applyTemplate('tailwind')">🔹 Tailwind CSS</div>
+            <div class="template-item" onclick="applyTemplate('bootstrap')">🔸 Bootstrap 5</div>
+            <div class="template-item" onclick="applyTemplate('glass')">💎 Glassmorphism</div>
+            <div class="template-item" onclick="applyTemplate('react')">⚛️ React</div>
+            <div class="template-item" onclick="applyTemplate('dashboard')">📊 Dashboard</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button class="btn btn-outline" style="flex:1; justify-content:center;" onclick="switchSidebarPosition()" title="Switch Sidebar Position">↔️</button>
+            <button class="btn btn-outline" style="flex:1; justify-content:center;" onclick="exportData()" title="Export Backup">💾</button>
+            <button class="btn btn-outline" style="flex:1; justify-content:center;" onclick="document.getElementById('importFile').click()" title="Import Backup">📥</button>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
+            <button class="btn" style="flex:1; justify-content:center; background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(6,182,212,0.2)); border:1px solid rgba(16,185,129,0.4); color:#10b981;" onclick="openGasModal()" title="Google Apps Script Editor">
+                <span>📜</span> <span class="sidebar-btn-text">GAS Editor</span>
+            </button>
+        </div>
+        <div class="storage-info" id="storageInfo">🗄️ Loading...</div>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main-content">
+    <header class="header">
+        <div class="header-left">
+            <div id="statusDot"></div>
+            <h1 id="contentTitle">Dashboard</h1>
+        </div>
+        <div id="actionGroup" style="display:none;">
+            <button class="btn btn-outline" onclick="reloadCode()" title="Refresh Preview">🔄 Refresh</button>
+            <button class="btn btn-outline" onclick="copyToClipboard()" title="Copy Code">📋 Copy</button>
+            <button class="btn btn-primary" onclick="editProject()" title="Edit Project">✏️ Edit</button>
+            <button class="btn btn-outline" onclick="downloadHTML()" title="Download HTML">📥 Download</button>
+            <button class="btn btn-outline" onclick="openAssetManager()" title="Asset Manager (Base64)">🖼️ Assets</button>
+            <button class="btn btn-outline" style="color: #f87171;" onclick="deleteCurrent()" title="Delete Project">🗑️ Delete</button>
+        </div>
+    </header>
+
+    <section class="view-container" id="viewContainer">
+        <!-- Dashboard or Preview rendered here -->
+    </section>
+</main>
+
+<!-- ===== MODAL: ADD / EDIT PROJECT ===== -->
+<div class="modal" id="codeModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div style="display:flex; flex-direction:column; gap:12px; flex:1;">
+                <h2 id="modalTitle">Project Settings</h2>
+                <div class="color-selector" id="colorPicker">
+                    <div class="color-opt" style="background:#8b5cf6;" data-color="#8b5cf6"></div>
+                    <div class="color-opt" style="background:#06b6d4;" data-color="#06b6d4"></div>
+                    <div class="color-opt" style="background:#10b981;" data-color="#10b981"></div>
+                    <div class="color-opt" style="background:#f59e0b;" data-color="#f59e0b"></div>
+                    <div class="color-opt" style="background:#ef4444;" data-color="#ef4444"></div>
+                    <div class="color-opt" style="background:#f472b6;" data-color="#f472b6"></div>
+                </div>
+            </div>
+            <input type="text" id="codeName" class="search-box" placeholder="Project name...">
+        </div>
+
+        <div class="editor-grid">
+            <div class="code-editor-wrapper" id="editorWrapper"
+                 ondrop="handleFileDrop(event)"
+                 ondragover="handleDragOver(event)"
+                 ondragleave="handleDragLeave(event)">
+                <div id="monacoContainer"></div>
+            </div>
+            <div class="live-preview">
+                <div class="live-label">● LIVE PREVIEW</div>
+                <iframe id="livePreviewFrame" style="width:100%; height:100%; border:none; background:#fff;"></iframe>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:16px; flex-wrap:wrap;">
+            <button class="btn btn-outline" onclick="closeModal()">CANCEL</button>
+            <button class="btn btn-primary" onclick="saveCode()">🚀 SAVE & DEPLOY (Ctrl+S)</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== ASSET MANAGER MODAL ===== -->
+<div class="modal" id="assetModal">
+    <div class="modal-content" style="max-width: 500px; min-height: auto; height: auto;">
+        <div class="modal-header">
+            <h2 style="font-size: 1.25rem;">🖼️ Asset Manager</h2>
+            <button class="btn btn-outline" onclick="closeAssetModal()">✕</button>
+        </div>
+        <div style="padding: 20px; text-align: center;">
+            <p style="margin-bottom: 20px; opacity: 0.7; font-size: 0.9rem;">Convert any image to Base64 to embed directly in your code.</p>
+            <div style="border: 2px dashed var(--glass-border); border-radius: 18px; padding: 40px; cursor: pointer; transition: var(--transition-fast);"
+                 onclick="document.getElementById('assetInput').click()"
+                 onmouseover="this.style.borderColor='var(--accent-primary)'"
+                 onmouseout="this.style.borderColor='var(--glass-border)'">
+                <div style="font-size: 3rem; margin-bottom: 10px;">📤</div>
+                <p>Click to upload image</p>
+                <input type="file" id="assetInput" hidden accept="image/*" onchange="convertImageToBase64(this)">
+            </div>
+            <div id="assetResult" style="margin-top: 20px; display: none;">
+                <textarea id="base64Output" class="search-box" style="height: 100px; font-family: monospace; font-size: 0.8rem; margin-bottom: 16px;" readonly></textarea>
+                <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="copyBase64()">📋 Copy Base64</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== GAS EDITOR MODAL ===== -->
+<div class="modal" id="gasModal">
+    <div class="modal-content">
+
+        <!-- Header -->
+        <div class="modal-header">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <div style="width:42px;height:42px;background:linear-gradient(135deg,#10b981,#06b6d4);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">📜</div>
+                <div>
+                    <h2 id="gasModalTitle" style="font-size:1.3rem;font-weight:700;">Google Apps Script Editor</h2>
+                    <p id="gasProjectSubtitle" style="font-size:0.75rem;opacity:0.5;margin-top:2px;">Connect to your GAS project</p>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <div id="gasStatusBadge" style="display:none; align-items:center; gap:8px; padding:6px 14px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:20px; font-size:0.8rem; color:#10b981;">
+                    <div class="gas-status-dot" id="gasStatusDot"></div>
+                    <span id="gasStatusText">Connected</span>
+                </div>
+                <button class="btn btn-outline" style="padding:10px 16px;color:#f87171;border-color:rgba(248,113,113,0.4);" id="gasSignOutBtn" onclick="gasSignOut()" style="display:none;">🚪 Sign Out</button>
+                <button class="btn btn-outline" onclick="closeGasModal()" style="padding:10px 16px;">✕ Close</button>
+            </div>
+        </div>
+
+        <!-- Auth Section (shown when not authenticated) -->
+        <div id="gasAuthSection">
+            <div class="gas-auth-section">
+                <span class="gas-auth-icon">🔐</span>
+                <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:12px;">Connect with Google Account</h3>
+                <p style="opacity:0.6;font-size:0.9rem;margin-bottom:8px;max-width:480px;margin-left:auto;margin-right:auto;">เพื่อเข้าถึง Google Apps Script API คุณต้องตั้งค่า OAuth 2.0 Client ID จาก Google Cloud Console ก่อน</p>
+                <p style="opacity:0.4;font-size:0.8rem;margin-bottom:28px;">Scope ที่ใช้: <code style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:6px;">https://www.googleapis.com/auth/script.projects</code></p>
+
+                <div class="gas-panel" style="max-width:500px;margin:0 auto 20px;text-align:left;">
+                    <h4>⚙️ OAuth 2.0 Configuration</h4>
+                    <input type="text" class="gas-input" id="gasClientId" placeholder="Google OAuth Client ID (xxxx.apps.googleusercontent.com)">
+                    <p style="font-size:0.75rem;opacity:0.4;margin-top:-4px;margin-bottom:12px;">ดูได้จาก Google Cloud Console → APIs &amp; Services → Credentials</p>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-primary" style="flex:1;justify-content:center;background:linear-gradient(135deg,#10b981,#06b6d4);" onclick="gasInitOAuth()">
+                            🔑 Sign in with Google
+                        </button>
+                    </div>
+                </div>
+
+                <div class="gas-panel" style="max-width:500px;margin:0 auto;text-align:left;">
+                    <h4>📋 วิธีตั้งค่า (Quick Guide)</h4>
+                    <ol style="font-size:0.82rem;opacity:0.7;line-height:1.8;padding-left:20px;">
+                        <li>ไปที่ <a href="https://console.cloud.google.com" target="_blank" style="color:#06b6d4;">Google Cloud Console</a></li>
+                        <li>สร้าง Project ใหม่ หรือเลือก Project ที่มีอยู่</li>
+                        <li>เปิดใช้งาน <strong>Apps Script API</strong></li>
+                        <li>ไปที่ APIs &amp; Services → Credentials → Create Credentials → OAuth 2.0 Client ID</li>
+                        <li>เลือก Application type: <strong>Web application</strong></li>
+                        <li>เพิ่ม Authorized JavaScript origins: <strong id="gasCurrentOrigin"></strong></li>
+                        <li>คัดลอก Client ID มาวางในช่องด้านบน</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Editor (shown when authenticated) -->
+        <div id="gasEditorSection" style="display:none;flex-direction:column;flex:1;min-height:0;gap:16px;">
+
+            <!-- Project Selector -->
+            <div id="gasProjectSelector" style="display:none;">
+                <div class="gas-panel">
+                    <h4>📂 Select GAS Project</h4>
+                    <div style="display:flex;gap:8px;margin-bottom:12px;">
+                        <input type="text" class="gas-input" id="gasScriptIdInput" placeholder="Script ID (จาก URL ของ GAS Editor)" style="margin-bottom:0;flex:1;">
+                        <button class="btn btn-primary" style="padding:10px 16px;white-space:nowrap;" onclick="gasLoadProject()">
+                            📂 Load
+                        </button>
+                    </div>
+                    <p style="font-size:0.75rem;opacity:0.4;">Script ID อยู่ใน URL: script.google.com/d/<strong style="color:#10b981;">[SCRIPT_ID]</strong>/edit</p>
+                    <div style="margin-top:12px;">
+                        <div style="font-size:0.75rem;opacity:0.5;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Recent Projects</div>
+                        <div id="gasRecentProjects" class="gas-project-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Layout -->
+            <div id="gasEditorLayout" class="gas-layout" style="display:none;">
+
+                <!-- Left: File List -->
+                <div class="gas-sidebar">
+                    <div class="gas-panel" style="flex-shrink:0;">
+                        <h4>📁 Project Files</h4>
+                        <div id="gasFileList" style="display:flex;flex-direction:column;gap:4px;"></div>
+                    </div>
+                    <div class="gas-panel" style="flex-shrink:0;">
+                        <h4>🛠️ Actions</h4>
+                        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;" onclick="gasAddFile()">
+                            ➕ New File
+                        </button>
+                        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;color:#10b981;border-color:rgba(16,185,129,0.4);" onclick="gasSaveFile()">
+                            💾 Save File (Ctrl+S)
+                        </button>
+                        <button class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;" onclick="gasSaveAllFiles()">
+                            🚀 Save All Files
+                        </button>
+                        <button class="btn btn-outline" style="width:100%;justify-content:center;color:#f59e0b;border-color:rgba(245,158,11,0.4);" onclick="gasImportToEliteHub()">
+                            📥 Import to Elite Hub
+                        </button>
+                    </div>
+                    <div class="gas-panel" style="flex-shrink:0;">
+                        <h4>ℹ️ Project Info</h4>
+                        <div id="gasProjectInfo" style="font-size:0.8rem;opacity:0.6;line-height:1.8;"></div>
+                    </div>
+                </div>
+
+                <!-- Right: Monaco Editor -->
+                <div class="gas-editor-area">
+                    <div class="gas-editor-toolbar">
+                        <button class="btn btn-outline" style="padding:6px 12px;font-size:0.8rem;" onclick="gasBackToSelector()">← Projects</button>
+                        <span class="gas-filename-badge" id="gasCurrentFileName">Select a file...</span>
+                        <div style="margin-left:auto;display:flex;gap:8px;">
+                            <select id="gasLanguageSelect" class="gas-input" style="width:auto;margin-bottom:0;padding:6px 10px;font-size:0.8rem;" onchange="gasChangeLanguage(this.value)">
+                                <option value="javascript">JavaScript (.gs)</option>
+                                <option value="html">HTML (.html)</option>
+                                <option value="json">JSON (.json)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="gasMonacoContainer" style="height:100%;"></div>
+                    <div class="gas-status-bar">
+                        <div class="gas-status-dot" id="gasEditorStatusDot"></div>
+                        <span id="gasEditorStatusText">Ready</span>
+                        <span style="margin-left:auto;" id="gasCursorInfo">Ln 1, Col 1</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== RENDERING ENGINE STATUS ===== -->
+<div class="rendering-status" id="renderingStatus">✓ Ultimate Rendering Engine</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast"></div>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dexie@3.2.7/dist/dexie.min.js"></script>
+<!-- Monaco Editor Loader: โหลด loader.js แล้ว config require ทันที -->
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+<script>
+    // Config require paths ทันทีหลัง loader.js โหลด
+    // เพื่อให้ require(['vs/editor/editor.main']) ทำงานได้เลย
+    if (typeof require !== 'undefined') {
+        require.config({
+            paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs' }
+        });
+    }
+</script>
+
+<script>
+    /* =====================================================
+       ELITE HUB v10.0 ULTIMATE
+       Merged from v9.0 Equilibrium + v6.9 Ultimate (x2)
+       Fixed: duplicate CSS, duplicate JS functions,
+              DB schema upgrade, memory leaks, all BUG FIXes
+       ===================================================== */
+
+    // ── State ──────────────────────────────────────────
+    let codes = [];
+    let currentId = null;
+    let editingId = null;
+    let selectedColor = '#8b5cf6';
+    let sortableInstance = null;
+    let iframeUrls = new Map();
+    const COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#f472b6'];
+
+    // ── Monaco Editor State ────────────────────────────
+    let monacoEditor = null;   // Monaco editor instance
+    let monacoReady = false;   // Monaco loaded flag
+    let monacoReadyCallbacks = []; // Queue of callbacks waiting for Monaco
+
+    // ── Monaco: สร้าง editor instance ───────────────────────────
+    function createEditorInstance(container, resolve) {
+        // Dispose editors เก่าที่อยู่ใน container เดียวกัน (ป้องกัน double-create)
+        monaco.editor.getEditors().forEach(function(ed) {
+            try { ed.dispose(); } catch(e) {}
+        });
+        container.innerHTML = '';
+        monacoEditor = monaco.editor.create(container, {
+            value: '',
+            language: 'html',
+            theme: 'vs-dark',
+            fontSize: 14,
+            fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+            fontLigatures: true,
+            lineHeight: 22,
+            minimap: { enabled: true, scale: 1 },
+            scrollBeyondLastLine: false,
+            wordWrap: 'off',
+            automaticLayout: true,
+            tabSize: 2,
+            insertSpaces: true,
+            formatOnPaste: false,
+            formatOnType: false,
+            renderLineHighlight: 'all',
+            cursorBlinking: 'smooth',
+            cursorSmoothCaretAnimation: 'on',
+            smoothScrolling: true,
+            bracketPairColorization: { enabled: true },
+            guides: { bracketPairs: true, indentation: true },
+            suggest: { showWords: true },
+            quickSuggestions: { other: true, comments: false, strings: true },
+            padding: { top: 16, bottom: 16 },
+            scrollbar: {
+                vertical: 'auto',
+                horizontal: 'auto',
+                verticalScrollbarSize: 8,
+                horizontalScrollbarSize: 8
+            }
+        });
+
+        // ปรับ theme ให้พื้นหลังตรงกับ design เดิม
+        monaco.editor.defineTheme('eliteHub', {
+            base: 'vs-dark',
+            inherit: true,
+            rules: [
+                { token: 'tag', foreground: '7dd3fc' },
+                { token: 'attribute.name', foreground: '86efac' },
+                { token: 'attribute.value', foreground: 'fca5a5' },
+                { token: 'comment', foreground: '64748b', fontStyle: 'italic' },
+                { token: 'string', foreground: 'fcd34d' },
+                { token: 'keyword', foreground: 'c084fc' },
+                { token: 'number', foreground: 'fb923c' },
+                { token: 'delimiter', foreground: '94a3b8' }
+            ],
+            colors: {
+                'editor.background': '#0b1221',
+                'editor.foreground': '#e2e8f0',
+                'editor.lineHighlightBackground': '#1e293b60',
+                'editor.selectionBackground': '#8b5cf640',
+                'editorLineNumber.foreground': '#475569',
+                'editorLineNumber.activeForeground': '#94a3b8',
+                'editorCursor.foreground': '#8b5cf6',
+                'editor.findMatchBackground': '#8b5cf640',
+                'editor.findMatchHighlightBackground': '#06b6d430',
+                'editorGutter.background': '#0a0f1a',
+                'scrollbarSlider.background': '#ffffff1a',
+                'scrollbarSlider.hoverBackground': '#ffffff33',
+                'scrollbarSlider.activeBackground': '#ffffff4d'
+            }
+        });
+        monaco.editor.setTheme('eliteHub');
+
+        // Live preview on content change (debounced)
+        let livePreviewTimer = null;
+        monacoEditor.onDidChangeModelContent(() => {
+            clearTimeout(livePreviewTimer);
+            livePreviewTimer = setTimeout(updateLivePreview, 300);
+        });
+
+        monacoReady = true;
+        if (resolve) resolve();
+    }
+
+    // ── Monaco Initialization ──────────────────────────────────
+    function initMonaco() {
+        return new Promise((resolve) => {
+            if (monacoReady && monacoEditor) { resolve(); return; }
+
+            if (typeof monaco !== 'undefined') {
+                // Monaco global โหลดแล้ว — สร้าง editor เลย
+                const container = document.getElementById('monacoContainer');
+                if (!container) { resolve(); return; }
+                if (monacoEditor) { resolve(); return; }
+                createEditorInstance(container, resolve);
+                return;
+            }
+
+            require(['vs/editor/editor.main'], function() {
+                const container = document.getElementById('monacoContainer');
+                if (!container) { resolve(); return; }
+                if (monacoEditor) { resolve(); return; }
+                createEditorInstance(container, resolve);
+            });
+        });
+    }
+
+    // ── Monaco Helper: get/set value ───────────────────
+    function getEditorValue() {
+        return monacoEditor ? monacoEditor.getValue() : '';
+    }
+
+    function setEditorValue(value) {
+        if (monacoEditor) {
+            monacoEditor.setValue(value || '');
+            monacoEditor.setScrollPosition({ scrollTop: 0 });
+        }
+    }
+
+    // ── Database (v3 — รองรับ migration จาก v1 และ v2) ──
+    // FIX: รวม schema จาก v9.0 (EliteHub_V9_Equilibrium) และ v6.9 (EliteHubV6_9_Ultimate)
+    // ใช้ชื่อ DB เดียว พร้อม version upgrade path ที่ถูกต้อง
+    const db = new Dexie('EliteHubV10_Ultimate');
+    db.version(1).stores({
+        projects: 'id, name, pinned, color',
+        settings: 'key'
+    });
+    db.version(2).stores({
+        projects: 'id, name, pinned, color, *tags',
+        settings: 'key'
+    });
+    db.version(3).stores({
+        projects: 'id, name, pinned, color, lastModified',
+        settings: 'key'
+    }).upgrade(tx => {
+        // เพิ่ม lastModified ให้ projects เก่าที่ยังไม่มี field นี้
+        return tx.table('projects').toCollection().modify(p => {
+            if (!p.lastModified) p.lastModified = p.id || Date.now();
+        });
+    });
+
+    // ── Ultimate Rendering Engine ──────────────────────
+    class UltimateRenderingEngine {
+        // FIX #2: doc.open() ไม่รับ arguments (mimeType, encoding) — ใช้แบบไม่มี args
+        // FIX #3: ลบ Tailwind trigger ที่ผิด — Tailwind CDN auto-process เอง
+        static injectContent(iframe, htmlContent) {
+            try {
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+                if (!doc) throw new Error('Cannot access iframe document');
+                doc.open();
+                doc.write(htmlContent);
+                doc.close();
+                return true;
+            } catch (error) {
+                console.error('Direct Injection Error:', error);
+                return false;
+            }
+        }
+
+        static createBlobUrl(content) {
+            try {
+                const blob = new Blob([content], { type: 'text/html; charset=utf-8' });
+                return URL.createObjectURL(blob);
+            } catch (error) {
+                console.error('Blob URL creation error:', error);
+                return null;
+            }
+        }
+
+        // FIX #1 + #14: revoke old Blob URL ก่อน set ใหม่ เพื่อป้องกัน memory leak
+        // ใช้ unique key ต่อ iframe แทน key คงที่
+        static async renderWithFallback(iframe, htmlContent, urlKey) {
+            const key = urlKey || iframe.id || 'default';
+
+            // Try Direct Document Injection first
+            const injected = this.injectContent(iframe, htmlContent);
+            if (injected) return true;
+
+            // Fallback to Blob URL method
+            if (iframeUrls.has(key)) {
+                URL.revokeObjectURL(iframeUrls.get(key));
+                iframeUrls.delete(key);
+            }
+            const url = this.createBlobUrl(htmlContent);
+            if (url) {
+                iframeUrls.set(key, url);
+                iframe.src = url;
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    // ── Error Handler ──────────────────────────────────
+    class ErrorHandler {
+        static async handle(error, context = '') {
+            console.error(`[${context}]`, error);
+            let message = '❌ An error occurred';
+            if (error instanceof DOMException) {
+                if (error.name === 'QuotaExceededError') {
+                    message = '❌ Storage quota exceeded. Please export and delete old projects.';
+                } else if (error.name === 'NotAllowedError') {
+                    message = '❌ Storage access denied. Check browser permissions.';
+                }
+            } else if (error.message) {
+                if (error.message.includes('JSON')) {
+                    message = '❌ Invalid data format. Please check your file.';
+                } else if (error.message.includes('network')) {
+                    message = '❌ Network error. Please check your connection.';
+                } else {
+                    message = `❌ ${error.message}`;
+                }
+            }
+            showToast(message);
+            return false;
+        }
+    }
+
+    // ── State Persistence (currentId) ────────────────────
+    async function saveCurrentId(id) {
+        try {
+            currentId = id;
+            await saveSetting('currentId', id);
+        } catch (error) {
+            console.error('Save currentId error:', error);
+        }
+    }
+
+    async function loadCurrentId() {
+        try {
+            const savedId = await loadSetting('currentId');
+            return savedId || null;
+        } catch (error) {
+            console.error('Load currentId error:', error);
+            return null;
+        }
+    }
+
+    // ── Storage Helpers ────────────────────────────────
+    async function saveSetting(key, value) {
+        try {
+            await db.settings.put({ key, value });
+        } catch (error) {
+            console.error('Setting save error:', error);
+        }
+    }
+
+    async function loadSetting(key) {
+        try {
+            const record = await db.settings.get(key);
+            return record ? record.value : null;
+        } catch (error) {
+            console.error('Setting load error:', error);
+            return null;
+        }
+    }
+
+    async function updateStorageInfo() {
+        try {
+            const count = await db.projects.count();
+            const info = document.getElementById('storageInfo');
+            if (info) {
+                info.textContent = `🗄️ IndexedDB: ${count} project${count !== 1 ? 's' : ''}`;
+                info.style.color = count > 50 ? '#f59e0b' : '#10b981';
+            }
+        } catch (error) {
+            await ErrorHandler.handle(error, 'updateStorageInfo');
+        }
+    }
+
+    async function saveToStore() {
+        try {
+            await db.projects.bulkPut(codes);
+            const currentIds = codes.map(c => c.id);
+            const allStoredIds = await db.projects.toCollection().primaryKeys();
+            const toDelete = allStoredIds.filter(id => !currentIds.includes(id));
+            if (toDelete.length > 0) await db.projects.bulkDelete(toDelete);
+            await updateStorageInfo();
+            return true;
+        } catch (error) {
+            return await ErrorHandler.handle(error, 'saveToStore');
+        }
+    }
+
+    async function loadFromStore() {
+        try {
+            const stored = await db.projects.toArray();
+            return Array.isArray(stored) ? stored : [];
+        } catch (error) {
+            await ErrorHandler.handle(error, 'loadFromStore');
+            return [];
+        }
+    }
+
+    // ── Toast Notification ─────────────────────────────
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        if (!t) return;
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ── Sidebar Controls ───────────────────────────────
+    async function toggleSidebar() {
+        const sb = document.getElementById('sidebar');
+        sb.classList.toggle('collapsed');
+        await saveSetting('sidebar_collapsed', sb.classList.contains('collapsed'));
+    }
+
+    async function switchSidebarPosition() {
+        document.body.classList.toggle('sidebar-right');
+        const isRight = document.body.classList.contains('sidebar-right');
+        await saveSetting('sidebar_position', isRight ? 'right' : 'left');
+        showToast(`📍 Sidebar moved to ${isRight ? 'right' : 'left'}`);
+    }
+
+    // ── Dashboard ──────────────────────────────────────
+    function renderDashboard() {
+        const totalProjects = codes.length;
+        const pinnedProjects = codes.filter(c => c.pinned).length;
+        const container = document.getElementById('viewContainer');
+
+        if (totalProjects === 0) {
+            container.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:center; height:100%;">
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; color:#475569; opacity:0.5; gap:20px;">
+                        <div style="font-size:5rem;">💠</div>
+                        <p style="font-size:1.1rem;">No projects yet. Create one to get started.</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const colorRowsHTML = COLORS.map(color => {
+            const count = codes.filter(c => c.color && c.color.toLowerCase() === color.toLowerCase()).length;
+            const percentage = totalProjects > 0 ? (count / totalProjects) * 100 : 0;
+            return `
+                <div class="color-bar-row">
+                    <div class="color-bar-label" style="background:${color};"></div>
+                    <div class="color-bar-bg">
+                        <div class="color-bar-fill" style="width:${percentage}%; background:${color};"></div>
+                    </div>
+                    <div class="color-bar-count">${count}</div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = `
+            <div class="stats-container">
+                <h2 style="margin-bottom:32px; font-weight:700; opacity:0.9; font-size:1.4rem;">System Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p class="stat-label">Total Projects</p>
+                        <div class="stat-value">${totalProjects}</div>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-label">Pinned</p>
+                        <div class="stat-value" style="background:linear-gradient(135deg,#fbbf24,#f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">${pinnedProjects}</div>
+                    </div>
+                    <div class="stat-card">
+                        <p class="stat-label">Unpinned</p>
+                        <div class="stat-value">${totalProjects - pinnedProjects}</div>
+                    </div>
+                </div>
+                <div class="color-stats-area">
+                    <h3 style="margin-bottom:24px; font-size:1.1rem; opacity:0.8; font-weight:600;">Color Distribution</h3>
+                    ${colorRowsHTML}
+                </div>
+            </div>
+        `;
+    }
+
+    async function showDashboard() {
+        await saveCurrentId(null);
+        document.getElementById('contentTitle').textContent = 'Dashboard';
+        document.getElementById('actionGroup').style.display = 'none';
+        const statusDot = document.getElementById('statusDot');
+        statusDot.style.background = 'var(--accent-primary)';
+        statusDot.style.boxShadow = '0 0 16px var(--accent-primary)';
+        renderDashboard();
+        renderList();
+    }
+
+    // ── HTML Escape ────────────────────────────────────
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // ── Project List ───────────────────────────────────
+    // FIX #19: ตรวจสอบ sortable ก่อน destroy เพื่อป้องกัน error ขณะ drag
+    function renderList(filteredData = null) {
+        const list = document.getElementById('codeList');
+        const data = [...(filteredData || codes)].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+
+        list.innerHTML = data.map(c => `
+            <div class="code-item ${c.id === currentId ? 'active' : ''}"
+                 style="--item-color:${c.color || '#8b5cf6'}"
+                 data-id="${c.id}" data-name="${escapeHtml(c.name)}"
+                 onclick="loadCode(${c.id})">
+                <div class="color-dot"></div>
+                <span class="project-name" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.name)}</span>
+                <span class="pin-icon ${c.pinned ? 'pinned' : ''}" onclick="togglePin(event, ${c.id})">📌</span>
+            </div>
+        `).join('');
+
+        if (sortableInstance) {
+            try { sortableInstance.destroy(); } catch(e) {}
+        }
+        sortableInstance = new Sortable(list, {
+            animation: 250,
+            ghostClass: 'sortable-ghost',
+            onEnd: () => {
+                const ids = Array.from(list.children).map(el => parseInt(el.dataset.id));
+                codes = ids.map(id => codes.find(c => c.id === id)).filter(Boolean);
+                saveToStore();
+            }
+        });
+    }
+
+    // ── Load & Preview Project ─────────────────────────
+    async function loadCode(id) {
+        const code = codes.find(c => c.id === id);
+        if (!code) { showToast('❌ Project not found'); return; }
+
+        await saveCurrentId(id);
+        document.getElementById('contentTitle').textContent = code.name;
+
+        const statusDot = document.getElementById('statusDot');
+        statusDot.style.background = code.color || '#8b5cf6';
+        statusDot.style.boxShadow = `0 0 16px ${code.color || '#8b5cf6'}`;
+
+        document.getElementById('actionGroup').style.display = 'flex';
+
+        const container = document.getElementById('viewContainer');
+        container.innerHTML = `
+            <div class="preview-window" id="captureTarget">
+                <iframe id="mainIframe"
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-presentation allow-top-navigation">
+                </iframe>
+            </div>
+        `;
+
+        try {
+            const iframe = document.getElementById('mainIframe');
+            // FIX #4: ไม่ set height inline — CSS .preview-window iframe จัดการแล้ว
+            // FIX #14: ส่ง urlKey 'mainIframe' เพื่อไม่ชนกับ livePreviewFrame
+            UltimateRenderingEngine.renderWithFallback(iframe, code.content, 'mainIframe');
+            renderList();
+        } catch (error) {
+            ErrorHandler.handle(error, 'loadCode');
+        }
+    }
+
+    // ── Modal: Open / Close ────────────────────────────
+    async function openAddCodeModal() {
+        editingId = null;
+        selectedColor = '#8b5cf6';
+        document.getElementById('modalTitle').textContent = 'Create New Project';
+        document.getElementById('codeName').value = '';
+        document.querySelectorAll('.color-opt').forEach(opt => {
+            opt.classList.toggle('selected', opt.dataset.color === selectedColor);
+        });
+        document.getElementById('livePreviewFrame').src = 'about:blank';
+        document.getElementById('codeModal').classList.add('active');
+        // Init Monaco ถ้ายังไม่ได้ init
+        await initMonaco();
+        setEditorValue('');
+        setTimeout(() => monacoEditor && monacoEditor.focus(), 300);
+    }
+
+    async function editProject() {
+        const code = codes.find(c => c.id === currentId);
+        if (!code) return;
+        editingId = currentId;
+        selectedColor = code.color || '#8b5cf6';
+        document.getElementById('modalTitle').textContent = 'Edit Project';
+        document.getElementById('codeName').value = code.name;
+        document.querySelectorAll('.color-opt').forEach(opt => {
+            opt.classList.toggle('selected', opt.dataset.color === selectedColor);
+        });
+        document.getElementById('codeModal').classList.add('active');
+        // Init Monaco ถ้ายังไม่ได้ init
+        await initMonaco();
+        setEditorValue(code.content);
+        updateLivePreview();
+        setTimeout(() => monacoEditor && monacoEditor.focus(), 300);
+    }
+
+    function closeModal() {
+        document.getElementById('codeModal').classList.remove('active');
+        editingId = null;
+        // เมื่อปิด modal Monaco ยัง layout ไว้เพื่อเปิดครั้งต่อไปได้ทันที
+        if (monacoEditor) monacoEditor.layout();
+    }
+
+    // ── Save Project ─────────────────────────────────
+    async function saveCode() {
+        const name = document.getElementById('codeName').value.trim() || `Project_${Date.now()}`;
+        // FIX #17: เก็บ content ตัวเต็ม (ไม่ trim) เพื่อไม่สูญเสีย whitespace ที่ตั้งใจ
+        const content = getEditorValue();
+        if (!content.trim()) { showToast('⚠️ Please write some code before saving'); return; }
+
+        try {
+            if (editingId) {
+                const idx = codes.findIndex(c => c.id === editingId);
+                if (idx !== -1) {
+                    codes[idx] = { ...codes[idx], name, content, color: selectedColor, lastModified: Date.now() };
+                }
+            } else {
+                const newId = Date.now();
+                codes.push({ id: newId, name, content, pinned: false, color: selectedColor, lastModified: newId });
+                currentId = newId;
+            }
+            const saved = await saveToStore();
+            if (!saved) return;
+            closeModal();
+            renderList();
+            loadCode(currentId);
+            showToast('✅ Saved successfully');
+        } catch (error) {
+            await ErrorHandler.handle(error, 'saveCode');
+        }
+    }
+
+    // ── Pin / Unpin ────────────────────────────────────
+    async function togglePin(e, id) {
+        e.stopPropagation();
+        const idx = codes.findIndex(c => c.id === id);
+        if (idx !== -1) {
+            codes[idx].pinned = !codes[idx].pinned;
+            await saveToStore();
+            renderList();
+            // FIX #8: ใช้ emoji ต่างกันสำหรับ pinned/unpinned
+            showToast(codes[idx].pinned ? '📌 Pinned' : '🔓 Unpinned');
+        }
+    }
+
+    // ── Color Picker ───────────────────────────────────
+    function selectColor(color) {
+        selectedColor = color;
+        document.querySelectorAll('.color-opt').forEach(opt => {
+            opt.classList.toggle('selected', opt.dataset.color === color);
+        });
+    }
+
+    // ── Live Preview ─────────────────────────────────────
+    // FIX #14: ส่ง urlKey 'livePreviewFrame' เพื่อไม่ชนกับ mainIframe key
+    function updateLivePreview() {
+        const frame = document.getElementById('livePreviewFrame');
+        const content = getEditorValue();
+        try {
+            UltimateRenderingEngine.renderWithFallback(frame, content, 'livePreviewFrame');
+        } catch (error) {
+            console.error('Preview error:', error);
+        }
+    }
+
+    // ── Line Numbers (no-op — Monaco จัดการเอง) ───────────────
+    function updateLineNumbers() { /* Monaco handles line numbers natively */ }
+
+    // ── Sync Scroll (no-op — Monaco จัดการเอง) ───────────────
+    function syncScroll() { /* Monaco handles scrolling natively */ }
+
+    // ── Search / Filter ────────────────────────────────────
+    // FIX #7: debounce เพื่อป้องกัน performance issue
+    let filterDebounceTimer = null;
+    function filterCodes() {
+        clearTimeout(filterDebounceTimer);
+        filterDebounceTimer = setTimeout(() => {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if (!query) { renderList(); return; }
+            const filtered = codes.filter(c =>
+                c.name.toLowerCase().includes(query) ||
+                c.content.toLowerCase().includes(query)
+            );
+            renderList(filtered);
+        }, 200);
+    }
+
+    // ── Clipboard ──────────────────────────────────────
+    function copyToClipboard() {
+        const code = codes.find(c => c.id === currentId);
+        if (code) {
+            navigator.clipboard.writeText(code.content)
+                .then(() => showToast('✅ Copied to clipboard!'))
+                .catch(() => showToast('❌ Failed to copy'));
+        }
+    }
+
+    // ── Reload ─────────────────────────────────────────
+    function reloadCode() {
+        if (currentId) { loadCode(currentId); showToast('🔄 Reloaded'); }
+    }
+
+    // ── Download HTML ──────────────────────────────────
+    function downloadHTML() {
+        const code = codes.find(c => c.id === currentId);
+        if (!code) return;
+        try {
+            const blob = new Blob([code.content], { type: 'text/html; charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const dl = document.createElement('a');
+            dl.href = url;
+            dl.download = `${code.name.replace(/[/\\?%*:|"<>]/g, '-') || 'project'}.html`;
+            document.body.appendChild(dl);
+            dl.click();
+            document.body.removeChild(dl);
+            URL.revokeObjectURL(url);
+            showToast('✅ Downloaded successfully');
+        } catch (error) {
+            ErrorHandler.handle(error, 'downloadHTML');
+        }
+    }
+
+    // ── Delete Project ─────────────────────────────────
+    async function deleteCurrent() {
+        if (!currentId) { showToast('❌ No project selected'); return; }
+        if (!confirm('Are you sure you want to permanently delete this project?')) return;
+        try {
+            codes = codes.filter(c => c.id !== currentId);
+            const saved = await saveToStore();
+            if (saved) {
+                await saveCurrentId(null);
+                showDashboard();
+                showToast('✅ Deleted successfully');
+            }
+        } catch (error) {
+            await ErrorHandler.handle(error, 'deleteCurrent');
+        }
+    }
+
+    // ── Asset Manager ──────────────────────────────────
+    function openAssetManager() {
+        document.getElementById('assetModal').classList.add('active');
+        document.getElementById('assetResult').style.display = 'none';
+        document.getElementById('assetInput').value = '';
+    }
+
+    function closeAssetModal() {
+        document.getElementById('assetModal').classList.remove('active');
+    }
+
+    function convertImageToBase64(input) {
+        if (!input.files || !input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('base64Output').value = e.target.result;
+            document.getElementById('assetResult').style.display = 'block';
+            showToast('✅ Image converted to Base64');
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    function copyBase64() {
+        const output = document.getElementById('base64Output');
+        output.select();
+        navigator.clipboard.writeText(output.value)
+            .then(() => showToast('✅ Base64 copied!'))
+            .catch(() => showToast('❌ Failed to copy'));
+    }
+
+    // ── Export / Import Backup ─────────────────────────
+    function exportData() {
+        try {
+            const blob = new Blob(
+                [JSON.stringify({ codes, version: '10.0-ultimate', timestamp: new Date().toISOString() }, null, 2)],
+                { type: 'application/json' }
+            );
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `EliteHub_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('✅ Backup exported successfully');
+        } catch (error) {
+            ErrorHandler.handle(error, 'exportData');
+        }
+    }
+
+    function importData(input) {
+        if (!input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = async e => {
+            try {
+                const data = JSON.parse(e.target.result);
+                // รองรับทั้ง format เก่า (array) และใหม่ (object with .codes)
+                const rawCodes = Array.isArray(data) ? data : (data.codes && Array.isArray(data.codes) ? data.codes : null);
+                if (!rawCodes) { showToast('❌ Invalid backup file format'); return; }
+
+                // FIX #9: Deduplicate ids เพื่อป้องกัน IndexedDB error จาก id ซ้ำ
+                const seenIds = new Set();
+                codes = rawCodes
+                    .filter(c => c && typeof c.id !== 'undefined')
+                    .map(c => {
+                        if (seenIds.has(c.id)) return { ...c, id: Date.now() + Math.random() };
+                        seenIds.add(c.id);
+                        return c;
+                    });
+
+                const saved = await saveToStore();
+                if (saved) {
+                    renderList();
+                    showDashboard();
+                    showToast(`✅ Imported ${codes.length} project${codes.length !== 1 ? 's' : ''} successfully!`);
+                }
+            } catch (error) {
+                await ErrorHandler.handle(error, 'importData');
+            }
+        };
+        reader.readAsText(input.files[0]);
+    }
+
+    // ── Templates ──────────────────────────────────────
+    function toggleTemplateMenu() {
+        const menu = document.getElementById('templateMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+
+    const TEMPLATES = {
+        tailwind: `<!DOCTYPE html>\n<html>\n<head>\n  <script src="https://cdn.tailwindcss.com"><\/script>\n</head>\n<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen">\n  <div class="p-8 bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 text-center">\n    <h1 class="text-3xl font-bold text-sky-400 mb-4">Hello Tailwind!</h1>\n    <p class="text-slate-400">Start building your amazing project here.</p>\n    <button class="mt-6 px-6 py-2 bg-sky-500 hover:bg-sky-600 rounded-full transition-all">Get Started</button>\n  </div>\n</body>\n</html>`,
+        bootstrap: `<!DOCTYPE html>\n<html>\n<head>\n  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">\n</head>\n<body class="bg-light">\n  <div class="container py-5">\n    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">\n      <div class="card-body p-5 text-center">\n        <h1 class="display-5 fw-bold text-primary mb-3">Bootstrap 5 Template</h1>\n        <p class="lead text-muted">A clean starting point for your Bootstrap project.</p>\n        <button class="btn btn-primary btn-lg px-4 rounded-pill">Explore More</button>\n      </div>\n    </div>\n  </div>\n</body>\n</html>`,
+        glass: `<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { background: linear-gradient(45deg, #0f172a, #1e293b); min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }\n    .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 3rem; border-radius: 2rem; color: white; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }\n    h1 { margin-bottom: 1rem; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2.5rem; }\n  </style>\n</head>\n<body>\n  <div class="glass">\n    <h1>Glassmorphism</h1>\n    <p style="opacity: 0.6;">Modern UI with backdrop-filter blur.</p>\n  </div>\n</body>\n</html>`,
+        react: `<!DOCTYPE html>\n<html>\n<head>\n  <script src="https://unpkg.com/react@18/umd/react.development.js"><\/script>\n  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>\n  <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>\n  <script src="https://cdn.tailwindcss.com"><\/script>\n</head>\n<body class="bg-zinc-950 text-white">\n  <div id="root"><\/div>\n  <script type="text/babel">\n    function App() {\n      const [active, setActive] = React.useState(false);\n      return (\n        <div className="min-h-screen flex items-center justify-center">\n          <div className={\`p-16 rounded-3xl transition-all duration-500 \${active ? 'bg-indigo-600 shadow-[0_0_60px_rgba(79,70,229,0.5)]' : 'bg-zinc-900'}\`}>\n            <h1 className="text-5xl font-black mb-8">React Template</h1>\n            <button onClick={() => setActive(!active)} className="px-8 py-3 bg-white text-black rounded-xl font-bold hover:scale-105 transition-all">Toggle</button>\n          </div>\n        </div>\n      );\n    }\n    ReactDOM.createRoot(document.getElementById('root')).render(<App />);\n  <\/script>\n</body>\n</html>`,
+        dashboard: `<!DOCTYPE html>\n<html>\n<head>\n  <script src="https://cdn.tailwindcss.com"><\/script>\n  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">\n</head>\n<body class="bg-slate-950 text-white p-10">\n  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">\n    <div class="bg-slate-900 p-10 rounded-[32px] border border-slate-800 hover:border-indigo-500 transition-all">\n      <i class="fas fa-users text-4xl text-indigo-500 mb-6"><\/i>\n      <div class="text-slate-400 font-bold uppercase text-sm mb-2">Total Users<\/div>\n      <div class="text-5xl font-black">12,480<\/div>\n    <\/div>\n    <div class="bg-slate-900 p-10 rounded-[32px] border border-slate-800 hover:border-emerald-500 transition-all">\n      <i class="fas fa-chart-line text-4xl text-emerald-500 mb-6"><\/i>\n      <div class="text-slate-400 font-bold uppercase text-sm mb-2">Revenue<\/div>\n      <div class="text-5xl font-black">$84.2k<\/div>\n    <\/div>\n    <div class="bg-slate-900 p-10 rounded-[32px] border border-slate-800 hover:border-rose-500 transition-all">\n      <i class="fas fa-bolt text-4xl text-rose-500 mb-6"><\/i>\n      <div class="text-slate-400 font-bold uppercase text-sm mb-2">Active Now<\/div>\n      <div class="text-5xl font-black">1,245<\/div>\n    <\/div>\n  <\/div>\n</body>\n</html>`
+    };
+
+    async function applyTemplate(type) {
+        await openAddCodeModal();
+        document.getElementById('codeName').value = `New ${type.charAt(0).toUpperCase() + type.slice(1)} Project`;
+        setEditorValue(TEMPLATES[type] || '');
+        updateLivePreview();
+        document.getElementById('templateMenu').style.display = 'none';
+        showToast('📝 Template applied!');
+    }
+
+    // ── Drag & Drop File ───────────────────────────────
+    function handleDragOver(e) { e.preventDefault(); e.stopPropagation(); }
+    function handleDragLeave(e) { e.preventDefault(); e.stopPropagation(); }
+
+    function handleFileDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const files = e.dataTransfer.files;
+        if (!files.length) return;
+        const file = files[0];
+        if (!file.name.endsWith('.html') && !file.name.endsWith('.txt')) {
+            showToast('❌ Only HTML or TXT files are supported');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = event => {
+            try {
+                setEditorValue(event.target.result);
+                updateLivePreview();
+                showToast('✅ File loaded successfully!');
+            } catch (error) {
+                ErrorHandler.handle(error, 'handleFileDrop');
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // ── Initialize ─────────────────────────────────────
+    async function initialize() {
+        try {
+            codes = await loadFromStore();
+
+            if (codes.length === 0) {
+                codes = [{
+                    id: Date.now(),
+                    name: 'Welcome to Elite Hub v11.0 Ultimate',
+                    content: `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Hub v11.0 Ultimate</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Segoe UI',sans-serif; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+        .container { text-align:center; color:white; padding:40px 20px; }
+        h1 { font-size:3rem; margin-bottom:20px; text-shadow:0 2px 10px rgba(0,0,0,0.3); }
+        p { font-size:1.2rem; opacity:0.9; margin-bottom:30px; }
+        .features { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; margin-top:40px; }
+        .feature { background:rgba(255,255,255,0.1); padding:20px; border-radius:10px; backdrop-filter:blur(10px); }
+        .feature h3 { margin-bottom:10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Elite Hub v11.0 Ultimate</h1>
+        <p>Merged & Fixed — Ultimate Code Editor & Preview Platform</p>
+        <div class="features">
+            <div class="feature"><h3>🚀 Direct Injection</h3><p>100% support for Tailwind, Fonts & CDN</p></div>
+            <div class="feature"><h3>💾 IndexedDB v3</h3><p>Persistent projects with migration support</p></div>
+            <div class="feature"><h3>🎨 Premium UI</h3><p>Neo-Glassmorphism design</p></div>
+            <div class="feature"><h3>⚡ Error Handling</h3><p>Robust class-based error management</p></div>
+            <div class="feature"><h3>🔀 Drag & Sort</h3><p>SortableJS project reordering</p></div>
+            <div class="feature"><h3>🖼️ Asset Manager</h3><p>Image to Base64 converter</p></div>
+        </div>
+    </div>
+</body>
+</html>`,
+                    pinned: true,
+                    color: '#8b5cf6',
+                    lastModified: Date.now()
+                }];
+                await saveToStore();
+            }
+
+            // Bind color picker
+            document.querySelectorAll('.color-opt').forEach(opt => {
+                opt.onclick = () => selectColor(opt.dataset.color);
+            });
+
+            // Restore sidebar position
+            const sidebarPosition = await loadSetting('sidebar_position');
+            if (sidebarPosition === 'right') document.body.classList.add('sidebar-right');
+
+            // Restore sidebar collapsed state
+            const sidebarCollapsed = await loadSetting('sidebar_collapsed');
+            if (sidebarCollapsed === true || sidebarCollapsed === 'true') {
+                document.getElementById('sidebar').classList.add('collapsed');
+            }
+
+            // Render list first
+            renderList();
+
+            // Restore previous view state (currentId)
+            const savedCurrentId = await loadCurrentId();
+            if (savedCurrentId) {
+                const projectExists = codes.some(c => c.id === savedCurrentId);
+                if (projectExists) {
+                    // Project exists - load it
+                    await loadCode(savedCurrentId);
+                } else {
+                    // Project was deleted - clear saved state and show dashboard
+                    await saveCurrentId(null);
+                    showDashboard();
+                }
+            } else {
+                // No saved state - show dashboard
+                showDashboard();
+            }
+
+            await updateStorageInfo();
+
+            // Update rendering status
+            document.getElementById('renderingStatus').textContent = '✓ v11.0 Ultimate + Monaco Editor';
+
+            // Keyboard shortcuts
+            window.addEventListener('keydown', e => {
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 's') {
+                        e.preventDefault();
+                        if (document.getElementById('codeModal').classList.contains('active')) saveCode();
+                        if (document.getElementById('gasModal').classList.contains('active')) gasSaveFile();
+                    }
+                    if (e.key === 'k') {
+                        e.preventDefault();
+                        // FIX #16: expand sidebar ก่อน focus search ถ้า sidebar ยัง collapsed
+                        const sb = document.getElementById('sidebar');
+                        if (sb.classList.contains('collapsed')) {
+                            sb.classList.remove('collapsed');
+                            saveSetting('sidebar_collapsed', false);
+                        }
+                        setTimeout(() => document.getElementById('searchInput').focus(), 100);
+                    }
+                }
+                if (e.key === 'Escape') {
+                    if (document.getElementById('codeModal').classList.contains('active')) closeModal();
+                    if (document.getElementById('assetModal').classList.contains('active')) closeAssetModal();
+                }
+            });
+
+            // FIX #11: Global drag-and-drop สำหรับ JSON import
+            // ตรวจสอบว่า drop target ไม่ใช่ editor wrapper เพื่อไม่เกิด double-handling
+            window.addEventListener('dragover', e => e.preventDefault());
+            window.addEventListener('drop', e => {
+                e.preventDefault();
+                const editorWrapper = document.getElementById('editorWrapper');
+                if (editorWrapper && editorWrapper.contains(e.target)) return;
+                const file = e.dataTransfer.files[0];
+                if (file?.name.endsWith('.json')) importData({ files: e.dataTransfer.files });
+            });
+
+            showToast('✅ Elite Hub v11.0 Ultimate + GAS Editor Ready');
+
+            // ตรวจสอบ OAuth redirect จาก Google (Implicit Flow)
+            gasCheckOAuthRedirect();
+        } catch (error) {
+            await ErrorHandler.handle(error, 'initialize');
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  GOOGLE APPS SCRIPT API — ELITE HUB INTEGRATION
+    //  OAuth 2.0 (PKCE) + Read/Write via Apps Script API v1
+    // ═══════════════════════════════════════════════════════
+
+    // ── GAS State ─────────────────────────────────────────
+    const GAS = {
+        // OAuth config
+        clientId: '',
+        accessToken: null,
+        tokenExpiry: 0,
+        // Project state
+        scriptId: null,
+        projectFiles: [],      // Array of { name, type, source }
+        activeFileIndex: -1,
+        unsavedFiles: new Set(),
+        // Monaco instance for GAS
+        editor: null,
+        editorReady: false,
+        // Constants
+        SCOPE: 'https://www.googleapis.com/auth/script.projects',
+        API_BASE: 'https://script.googleapis.com/v1/projects',
+        STORAGE_KEY: 'EliteHub_GAS_Config',
+        RECENT_KEY: 'EliteHub_GAS_Recent'
+    };
+
+    // ── GAS Modal Open/Close ───────────────────────────────
+    function openGasModal() {
+        document.getElementById('gasModal').classList.add('active');
+        document.getElementById('gasCurrentOrigin').textContent = window.location.origin;
+        // Load saved client ID
+        const saved = gasLoadConfig();
+        if (saved.clientId) {
+            document.getElementById('gasClientId').value = saved.clientId;
+            GAS.clientId = saved.clientId;
+        }
+        // Restore token if still valid
+        if (saved.accessToken && Date.now() < saved.tokenExpiry) {
+            GAS.accessToken = saved.accessToken;
+            GAS.tokenExpiry = saved.tokenExpiry;
+            gasShowEditorSection();
+        }
+        gasRenderRecentProjects();
+    }
+
+    function closeGasModal() {
+        document.getElementById('gasModal').classList.remove('active');
+    }
+
+    // ── GAS Config Persistence ─────────────────────────────
+    function gasSaveConfig() {
+        try {
+            localStorage.setItem(GAS.STORAGE_KEY, JSON.stringify({
+                clientId: GAS.clientId,
+                accessToken: GAS.accessToken,
+                tokenExpiry: GAS.tokenExpiry
+            }));
+        } catch(e) {}
+    }
+
+    function gasLoadConfig() {
+        try {
+            const raw = localStorage.getItem(GAS.STORAGE_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch(e) { return {}; }
+    }
+
+    function gasSaveRecentProject(scriptId, title) {
+        try {
+            let recent = gasGetRecentProjects();
+            recent = recent.filter(r => r.scriptId !== scriptId);
+            recent.unshift({ scriptId, title, lastOpened: Date.now() });
+            if (recent.length > 8) recent = recent.slice(0, 8);
+            localStorage.setItem(GAS.RECENT_KEY, JSON.stringify(recent));
+        } catch(e) {}
+    }
+
+    function gasGetRecentProjects() {
+        try {
+            const raw = localStorage.getItem(GAS.RECENT_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch(e) { return []; }
+    }
+
+    function gasRenderRecentProjects() {
+        const container = document.getElementById('gasRecentProjects');
+        if (!container) return;
+        const recent = gasGetRecentProjects();
+        if (recent.length === 0) {
+            container.innerHTML = '<p style="font-size:0.8rem;opacity:0.4;">ยังไม่มีโปรเจกต์ที่เปิดล่าสุด</p>';
+            return;
+        }
+        container.innerHTML = recent.map(r => `
+            <div class="gas-project-card" onclick="gasOpenRecent('${escapeHtml(r.scriptId)}')">
+                <div class="proj-name">${escapeHtml(r.title || 'Untitled Project')}</div>
+                <div class="proj-id">${escapeHtml(r.scriptId)}</div>
+            </div>
+        `).join('');
+    }
+
+    function gasOpenRecent(scriptId) {
+        document.getElementById('gasScriptIdInput').value = scriptId;
+        gasLoadProject();
+    }
+
+    // ── GAS OAuth 2.0 (Implicit Flow / Token via popup) ────
+    function gasInitOAuth() {
+        const clientId = document.getElementById('gasClientId').value.trim();
+        if (!clientId) {
+            showToast('❌ กรุณากรอก OAuth Client ID ก่อน');
+            return;
+        }
+        GAS.clientId = clientId;
+        gasSaveConfig();
+
+        const params = new URLSearchParams({
+            client_id: clientId,
+            redirect_uri: window.location.origin + window.location.pathname,
+            response_type: 'token',
+            scope: GAS.SCOPE,
+            include_granted_scopes: 'true',
+            state: 'gas_oauth_' + Date.now()
+        });
+
+        const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+
+        // เปิด popup window สำหรับ OAuth
+        const popup = window.open(authUrl, 'gasOAuthPopup',
+            'width=520,height=620,scrollbars=yes,resizable=yes,top=100,left=200');
+
+        if (!popup) {
+            // Popup blocked — redirect ใน tab เดียวกัน
+            showToast('⚠️ Popup ถูกบล็อก กำลัง redirect...');
+            window.location.href = authUrl;
+            return;
+        }
+
+        // Poll popup สำหรับ token ใน URL fragment
+        const pollTimer = setInterval(() => {
+            try {
+                if (popup.closed) {
+                    clearInterval(pollTimer);
+                    // ตรวจสอบว่าได้ token หรือยัง
+                    if (!GAS.accessToken) {
+                        gasSetStatus('error', 'Authentication cancelled');
+                    }
+                    return;
+                }
+                const popupUrl = popup.location.href;
+                if (popupUrl.includes('access_token=')) {
+                    popup.close();
+                    clearInterval(pollTimer);
+                    gasHandleOAuthCallback(popupUrl);
+                }
+            } catch(e) {
+                // Cross-origin — ยังรอ redirect กลับมา
+            }
+        }, 300);
+    }
+
+    // Handle OAuth callback จาก URL fragment (สำหรับกรณี redirect ใน tab เดียวกัน)
+    function gasCheckOAuthRedirect() {
+        const hash = window.location.hash;
+        if (hash && hash.includes('access_token=')) {
+            gasHandleOAuthCallback(window.location.href);
+            // ลบ token ออกจาก URL
+            history.replaceState(null, '', window.location.pathname);
+        }
+    }
+
+    function gasHandleOAuthCallback(url) {
+        try {
+            const fragment = url.split('#')[1] || url.split('?')[1] || '';
+            const params = new URLSearchParams(fragment);
+            const token = params.get('access_token');
+            const expiresIn = parseInt(params.get('expires_in') || '3600');
+
+            if (!token) {
+                const error = params.get('error') || 'Unknown error';
+                showToast('❌ OAuth Error: ' + error);
+                gasSetStatus('error', 'Auth failed: ' + error);
+                return;
+            }
+
+            GAS.accessToken = token;
+            GAS.tokenExpiry = Date.now() + (expiresIn * 1000) - 60000; // -1 min buffer
+            gasSaveConfig();
+
+            showToast('✅ เชื่อมต่อ Google Account สำเร็จ!');
+            gasShowEditorSection();
+        } catch(e) {
+            showToast('❌ OAuth callback error: ' + e.message);
+        }
+    }
+
+    function gasIsAuthenticated() {
+        return GAS.accessToken && Date.now() < GAS.tokenExpiry;
+    }
+
+    function gasSignOut() {
+        GAS.accessToken = null;
+        GAS.tokenExpiry = 0;
+        GAS.scriptId = null;
+        GAS.projectFiles = [];
+        GAS.activeFileIndex = -1;
+        GAS.unsavedFiles.clear();
+        gasSaveConfig();
+        // กลับไปหน้า Auth
+        document.getElementById('gasAuthSection').style.display = 'block';
+        document.getElementById('gasEditorSection').style.display = 'none';
+        document.getElementById('gasStatusBadge').style.display = 'none';
+        const signOutBtn = document.getElementById('gasSignOutBtn');
+        if (signOutBtn) signOutBtn.style.display = 'none';
+        showToast('👋 ออกจากระบบแล้ว');
+    }
+
+    // ── GAS UI State Helpers ───────────────────────────────
+    function gasShowEditorSection() {
+        document.getElementById('gasAuthSection').style.display = 'none';
+        document.getElementById('gasEditorSection').style.display = 'flex';
+        document.getElementById('gasProjectSelector').style.display = 'block';
+        document.getElementById('gasEditorLayout').style.display = 'none';
+        document.getElementById('gasStatusBadge').style.display = 'flex';
+        const signOutBtn = document.getElementById('gasSignOutBtn');
+        if (signOutBtn) signOutBtn.style.display = 'inline-flex';
+        gasSetStatus('ok', 'Authenticated');
+        gasRenderRecentProjects();
+    }
+
+    function gasSetStatus(type, text) {
+        const dot = document.getElementById('gasStatusDot');
+        const textEl = document.getElementById('gasStatusText');
+        const editorDot = document.getElementById('gasEditorStatusDot');
+        const editorText = document.getElementById('gasEditorStatusText');
+        if (!dot || !textEl) return;
+        dot.className = 'gas-status-dot' + (type === 'loading' ? ' loading' : type === 'error' ? ' error' : '');
+        textEl.textContent = text;
+        if (editorDot) editorDot.className = 'gas-status-dot' + (type === 'loading' ? ' loading' : type === 'error' ? ' error' : '');
+        if (editorText) editorText.textContent = text;
+    }
+
+    // ── GAS API: Fetch Helper ──────────────────────────────
+    async function gasFetch(url, options = {}) {
+        if (!gasIsAuthenticated()) {
+            showToast('❌ Session หมดอายุ กรุณา Sign in ใหม่');
+            gasSignOut();
+            throw new Error('Not authenticated');
+        }
+        const headers = {
+            'Authorization': 'Bearer ' + GAS.accessToken,
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        };
+        const response = await fetch(url, { ...options, headers });
+        if (response.status === 401) {
+            showToast('❌ Token หมดอายุ กรุณา Sign in ใหม่');
+            gasSignOut();
+            throw new Error('Token expired');
+        }
+        if (!response.ok) {
+            const errBody = await response.json().catch(() => ({}));
+            const errMsg = errBody?.error?.message || response.statusText;
+            throw new Error(`API Error ${response.status}: ${errMsg}`);
+        }
+        return response.json();
+    }
+
+    // ── GAS API: Load Project (Read) ───────────────────────
+    async function gasLoadProject() {
+        const scriptId = document.getElementById('gasScriptIdInput').value.trim();
+        if (!scriptId) { showToast('❌ กรุณากรอก Script ID'); return; }
+
+        gasSetStatus('loading', 'Loading project...');
+        showToast('⏳ กำลังโหลดโปรเจกต์...');
+
+        try {
+            // 1. ดึง Project Metadata
+            const meta = await gasFetch(`${GAS.API_BASE}/${scriptId}`);
+
+            // 2. ดึง Project Content (source files)
+            const content = await gasFetch(`${GAS.API_BASE}/${scriptId}/content`);
+
+            GAS.scriptId = scriptId;
+            GAS.projectFiles = (content.files || []).map(f => ({
+                name: f.name,
+                type: f.type,           // SERVER_JS | HTML | JSON
+                source: f.source || '',
+                originalSource: f.source || ''
+            }));
+            GAS.activeFileIndex = -1;
+            GAS.unsavedFiles.clear();
+
+            // แสดง Editor Layout
+            document.getElementById('gasProjectSelector').style.display = 'none';
+            document.getElementById('gasEditorLayout').style.display = 'grid';
+
+            // อัปเดต Project Info
+            const createTime = meta.createTime ? new Date(meta.createTime).toLocaleDateString('th-TH') : '-';
+            const updateTime = meta.updateTime ? new Date(meta.updateTime).toLocaleDateString('th-TH') : '-';
+            document.getElementById('gasProjectInfo').innerHTML = `
+                <div><strong>Name:</strong> ${escapeHtml(meta.title || 'Untitled')}</div>
+                <div><strong>Script ID:</strong> <span style="font-family:monospace;font-size:0.75rem;opacity:0.7;">${escapeHtml(scriptId.slice(0,20))}...</span></div>
+                <div><strong>Created:</strong> ${createTime}</div>
+                <div><strong>Updated:</strong> ${updateTime}</div>
+                <div><strong>Files:</strong> ${GAS.projectFiles.length}</div>
+            `;
+
+            document.getElementById('gasModalTitle').textContent = meta.title || 'GAS Project';
+            document.getElementById('gasProjectSubtitle').textContent = `${GAS.projectFiles.length} file(s) loaded`;
+
+            // บันทึก recent
+            gasSaveRecentProject(scriptId, meta.title || 'Untitled');
+
+            // Render file list
+            gasRenderFileList();
+
+            // Init Monaco สำหรับ GAS
+            await gasInitMonaco();
+
+            // เปิดไฟล์แรก
+            if (GAS.projectFiles.length > 0) gasSelectFile(0);
+
+            gasSetStatus('ok', `Loaded: ${meta.title || 'Untitled'}`);
+            showToast(`✅ โหลด ${GAS.projectFiles.length} ไฟล์สำเร็จ`);
+
+        } catch(e) {
+            gasSetStatus('error', 'Load failed');
+            showToast('❌ ' + e.message);
+            console.error('[GAS] Load project error:', e);
+        }
+    }
+
+    // ── GAS: Render File List ──────────────────────────────
+    function gasRenderFileList() {
+        const container = document.getElementById('gasFileList');
+        if (!container) return;
+        container.innerHTML = GAS.projectFiles.map((f, i) => {
+            const typeClass = f.type === 'SERVER_JS' ? 'gas-type-server'
+                            : f.type === 'HTML' ? 'gas-type-html'
+                            : 'gas-type-json';
+            const typeLabel = f.type === 'SERVER_JS' ? '.gs'
+                            : f.type === 'HTML' ? '.html'
+                            : '.json';
+            const isDirty = GAS.unsavedFiles.has(i);
+            return `
+                <div class="gas-file-item ${i === GAS.activeFileIndex ? 'active' : ''}" onclick="gasSelectFile(${i})">
+                    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        ${isDirty ? '<span style="color:#f59e0b;margin-right:4px;">●</span>' : ''}
+                        ${escapeHtml(f.name)}
+                    </span>
+                    <span class="gas-file-type ${typeClass}">${typeLabel}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // ── GAS: Select & Load File into Monaco ───────────────
+    async function gasSelectFile(index) {
+        if (index < 0 || index >= GAS.projectFiles.length) return;
+
+        // บันทึก content ของ file ปัจจุบันก่อนเปลี่ยน
+        if (GAS.activeFileIndex >= 0 && GAS.editor) {
+            GAS.projectFiles[GAS.activeFileIndex].source = GAS.editor.getValue();
+        }
+
+        GAS.activeFileIndex = index;
+        const file = GAS.projectFiles[index];
+
+        // อัปเดต UI
+        document.getElementById('gasCurrentFileName').textContent = file.name + (file.type === 'SERVER_JS' ? '.gs' : file.type === 'HTML' ? '.html' : '.json');
+
+        // เปลี่ยน language ใน Monaco
+        const lang = file.type === 'SERVER_JS' ? 'javascript'
+                   : file.type === 'HTML' ? 'html'
+                   : 'json';
+        const langSelect = document.getElementById('gasLanguageSelect');
+        if (langSelect) langSelect.value = lang;
+
+        if (GAS.editor) {
+            const model = GAS.editor.getModel();
+            if (model) {
+                monaco.editor.setModelLanguage(model, lang);
+            }
+            GAS.editor.setValue(file.source || '');
+            GAS.editor.setScrollPosition({ scrollTop: 0 });
+            GAS.editor.focus();
+        }
+
+        gasRenderFileList();
+    }
+
+    // ── GAS: Monaco Init (แยกจาก main Monaco) ─────────────
+    function gasInitMonaco() {
+        return new Promise((resolve) => {
+            if (GAS.editorReady && GAS.editor) { resolve(); return; }
+
+            const container = document.getElementById('gasMonacoContainer');
+            if (!container) { resolve(); return; }
+
+            const doCreate = () => {
+                // Dispose ถ้ามี editor เก่าใน container นี้
+                if (GAS.editor) {
+                    try { GAS.editor.dispose(); } catch(e) {}
+                }
+                container.innerHTML = '';
+
+                GAS.editor = monaco.editor.create(container, {
+                    value: '',
+                    language: 'javascript',
+                    theme: 'eliteHub',
+                    fontSize: 14,
+                    fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+                    fontLigatures: true,
+                    lineHeight: 22,
+                    minimap: { enabled: true, scale: 1 },
+                    scrollBeyondLastLine: false,
+                    wordWrap: 'off',
+                    automaticLayout: true,
+                    tabSize: 2,
+                    insertSpaces: true,
+                    renderLineHighlight: 'all',
+                    cursorBlinking: 'smooth',
+                    cursorSmoothCaretAnimation: 'on',
+                    smoothScrolling: true,
+                    bracketPairColorization: { enabled: true },
+                    guides: { bracketPairs: true, indentation: true },
+                    suggest: { showWords: true },
+                    quickSuggestions: { other: true, comments: false, strings: true },
+                    padding: { top: 16, bottom: 16 },
+                    scrollbar: {
+                        vertical: 'auto',
+                        horizontal: 'auto',
+                        verticalScrollbarSize: 8,
+                        horizontalScrollbarSize: 8
+                    }
+                });
+
+                // Track cursor position
+                GAS.editor.onDidChangeCursorPosition(e => {
+                    const info = document.getElementById('gasCursorInfo');
+                    if (info) info.textContent = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
+                });
+
+                // Track unsaved changes
+                GAS.editor.onDidChangeModelContent(() => {
+                    if (GAS.activeFileIndex >= 0) {
+                        GAS.unsavedFiles.add(GAS.activeFileIndex);
+                        gasRenderFileList();
+                        gasSetStatus('ok', '● Unsaved changes');
+                    }
+                });
+
+                GAS.editorReady = true;
+                resolve();
+            };
+
+            if (typeof monaco !== 'undefined') {
+                doCreate();
+            } else {
+                require(['vs/editor/editor.main'], doCreate);
+            }
+        });
+    }
+
+    // ── GAS: Change Language ───────────────────────────────
+    function gasChangeLanguage(lang) {
+        if (!GAS.editor) return;
+        const model = GAS.editor.getModel();
+        if (model) monaco.editor.setModelLanguage(model, lang);
+    }
+
+    // ── GAS API: Save File (Write) ─────────────────────────
+    async function gasSaveFile() {
+        if (GAS.activeFileIndex < 0) { showToast('❌ ยังไม่ได้เลือกไฟล์'); return; }
+        if (!GAS.scriptId) { showToast('❌ ยังไม่ได้โหลดโปรเจกต์'); return; }
+
+        // อัปเดต source จาก editor
+        if (GAS.editor) {
+            GAS.projectFiles[GAS.activeFileIndex].source = GAS.editor.getValue();
+        }
+
+        gasSetStatus('loading', 'Saving...');
+        showToast('⏳ กำลังบันทึก...');
+
+        try {
+            await gasPushContent();
+            GAS.unsavedFiles.delete(GAS.activeFileIndex);
+            gasRenderFileList();
+            gasSetStatus('ok', 'Saved successfully');
+            showToast('✅ บันทึกสำเร็จ!');
+        } catch(e) {
+            gasSetStatus('error', 'Save failed');
+            showToast('❌ บันทึกไม่สำเร็จ: ' + e.message);
+        }
+    }
+
+    // ── GAS API: Save All Files (Write) ───────────────────
+    async function gasSaveAllFiles() {
+        if (!GAS.scriptId) { showToast('❌ ยังไม่ได้โหลดโปรเจกต์'); return; }
+
+        // อัปเดต source ของ active file จาก editor
+        if (GAS.editor && GAS.activeFileIndex >= 0) {
+            GAS.projectFiles[GAS.activeFileIndex].source = GAS.editor.getValue();
+        }
+
+        gasSetStatus('loading', 'Saving all files...');
+        showToast('⏳ กำลังบันทึกทุกไฟล์...');
+
+        try {
+            await gasPushContent();
+            GAS.unsavedFiles.clear();
+            gasRenderFileList();
+            gasSetStatus('ok', 'All files saved');
+            showToast(`✅ บันทึก ${GAS.projectFiles.length} ไฟล์สำเร็จ!`);
+        } catch(e) {
+            gasSetStatus('error', 'Save failed');
+            showToast('❌ บันทึกไม่สำเร็จ: ' + e.message);
+        }
+    }
+
+    // ── GAS API: Push Content to API ──────────────────────
+    async function gasPushContent() {
+        const files = GAS.projectFiles.map(f => ({
+            name: f.name,
+            type: f.type,
+            source: f.source
+        }));
+
+        await gasFetch(`${GAS.API_BASE}/${GAS.scriptId}/content`, {
+            method: 'PUT',
+            body: JSON.stringify({ files })
+        });
+    }
+
+    // ── GAS: Add New File ──────────────────────────────────
+    function gasAddFile() {
+        const name = prompt('ชื่อไฟล์ใหม่ (ไม่ต้องใส่นามสกุล):');
+        if (!name || !name.trim()) return;
+
+        const typeChoice = prompt('ประเภทไฟล์:\n1 = Server-side JS (.gs)\n2 = HTML (.html)\n3 = JSON (.json)\n\nพิมพ์ 1, 2 หรือ 3:');
+        const typeMap = { '1': 'SERVER_JS', '2': 'HTML', '3': 'JSON' };
+        const type = typeMap[typeChoice] || 'SERVER_JS';
+
+        const defaultContent = {
+            SERVER_JS: '// New Google Apps Script file\nfunction myFunction() {\n  \n}\n',
+            HTML: '<!DOCTYPE html>\n<html>\n<head>\n  <base target="_top">\n</head>\n<body>\n  \n</body>\n</html>',
+            JSON: '{\n  \n}'
+        };
+
+        GAS.projectFiles.push({
+            name: name.trim(),
+            type,
+            source: defaultContent[type],
+            originalSource: ''
+        });
+
+        const newIndex = GAS.projectFiles.length - 1;
+        GAS.unsavedFiles.add(newIndex);
+        gasRenderFileList();
+        gasSelectFile(newIndex);
+        showToast(`✅ เพิ่มไฟล์ ${name} แล้ว (อย่าลืม Save!)`);
+    }
+
+    // ── GAS: Import to Elite Hub ───────────────────────────
+    async function gasImportToEliteHub() {
+        if (GAS.projectFiles.length === 0) { showToast('❌ ยังไม่มีไฟล์ใน project'); return; }
+
+        // สร้าง HTML wrapper สำหรับไฟล์ GAS
+        const filesSummary = GAS.projectFiles.map(f => {
+            const ext = f.type === 'SERVER_JS' ? '.gs' : f.type === 'HTML' ? '.html' : '.json';
+            return `<!-- ===== FILE: ${f.name}${ext} (${f.type}) ===== -->\n${f.source}`;
+        }).join('\n\n');
+
+        const projectTitle = document.getElementById('gasModalTitle').textContent || 'GAS Project';
+        const wrappedContent = `<!-- GAS Project: ${projectTitle} -->\n<!-- Imported from Google Apps Script via Elite Hub -->\n<!-- Script ID: ${GAS.scriptId} -->\n<!-- Files: ${GAS.projectFiles.length} -->\n\n${filesSummary}`;
+
+        // เพิ่มเป็น project ใหม่ใน Elite Hub
+        const newProject = {
+            id: Date.now(),
+            name: `[GAS] ${projectTitle}`,
+            content: wrappedContent,
+            color: '#10b981',
+            pinned: false,
+            lastModified: Date.now()
+        };
+
+        codes.push(newProject);
+        const saved = await saveToStore();
+        if (saved) {
+            renderList();
+            showToast(`✅ Import "${projectTitle}" เข้า Elite Hub แล้ว!`);
+            closeGasModal();
+            await loadCode(newProject.id);
+        }
+    }
+
+    // ── GAS: Keyboard Shortcut (Ctrl+S ใน GAS Modal) ──────
+    // (ถูก handle ใน keydown listener ด้านล่าง)
+
+    // ── GAS: Back to Project Selector ─────────────────────
+    function gasBackToSelector() {
+        // บันทึก content ปัจจุบัน
+        if (GAS.editor && GAS.activeFileIndex >= 0) {
+            GAS.projectFiles[GAS.activeFileIndex].source = GAS.editor.getValue();
+        }
+        if (GAS.unsavedFiles.size > 0) {
+            if (!confirm(`มีการเปลี่ยนแปลง ${GAS.unsavedFiles.size} ไฟล์ที่ยังไม่ได้บันทึก\nต้องการออกโดยไม่บันทึกหรือไม่?`)) return;
+        }
+        GAS.scriptId = null;
+        GAS.projectFiles = [];
+        GAS.activeFileIndex = -1;
+        GAS.unsavedFiles.clear();
+        document.getElementById('gasProjectSelector').style.display = 'block';
+        document.getElementById('gasEditorLayout').style.display = 'none';
+        document.getElementById('gasScriptIdInput').value = '';
+        gasRenderRecentProjects();
+        gasSetStatus('ok', 'Authenticated');
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  END GAS API INTEGRATION
+    // ═══════════════════════════════════════════════════════
+
+    // ── Startup ────────────────────────────────────────
+    window.onload = initialize;
+
+    // ── Cleanup on unload ──────────────────────────────
+    window.addEventListener('beforeunload', () => {
+        iframeUrls.forEach(url => URL.revokeObjectURL(url));
+    });
+</script>
+
+<!-- example code demonstrating backend API call -->
+<script>
+    // when the page loads log the contents of our dashboard API
+    fetch('/api/dashboard')
+        .then(r => r.json())
+        .then(data => {
+            console.log('backend dashboard data:', data);
+        })
+        .catch(err => console.error('error fetching dashboard data', err));
+</script>
+</body>
+</html>
